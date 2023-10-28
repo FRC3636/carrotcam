@@ -1,0 +1,17 @@
+[package]
+name = "carrotcam"
+version = "0.1.0"
+edition = "2021"
+license = "ISC"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.75"
+apriltag = "0.4.0"
+apriltag-image = "0.1.0"
+arboard = "3.2.1"
+clap = { version = "4.4.7", features = ["derive"] }
+image = "0.24.7"
+imageproc = { version = "0.23.0" }
+show-image = { version = "0.13.1", features = ["image"] }
