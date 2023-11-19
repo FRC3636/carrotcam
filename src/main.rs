@@ -12,6 +12,7 @@ use crate::img_utils::{copy_image, thick_line_to_polygon, CapStyle};
 use nokhwa::pixel_format::LumaFormat;
 use nokhwa::Camera;
 use nokhwa::utils::{RequestedFormat, RequestedFormatType};
+use rusttype::{Scale, Font};
 
 pub mod img_utils;
 
@@ -58,7 +59,33 @@ fn display_april_tags(background_image: DynamicImage, tags: Vec<Detection>, wind
     let mut image = background_image.to_rgb8();
     const RED: Rgb<u8> = Rgb([255, 0, 0]);
     for tag in tags {
+        // filter (most) artifacts
+        if tag.id() > 8 {
+            continue;
+        }
+
         let corners = tag.corners();
+        // not sure if you can even have not 4 corners
+        // shitty attempt to filter artifacts
+        if corners.len() != 4 { 
+            continue;
+        }
+
+        // calculate area
+        let mut area = 0.0;
+        for i in 0..corners.len() {
+            let corner = corners[i].map(|x| x as i32);
+            let next_corner = corners[(i + 1) % corners.len()].map(|x| x as i32);
+            area += corner[0] as f64 * next_corner[1] as f64;
+            area -= corner[1] as f64 * next_corner[0] as f64;
+        }
+
+        // hacky way to filter artifacts. will require changing.
+        if (area.abs() / 2 as f64) < 1000.0 {
+            continue; 
+        }
+
+
         for i in 0..corners.len() {
             let corner = corners[i].map(|x| x as i32);
             let next_corner = corners[(i + 1) % corners.len()].map(|x| x as i32);
@@ -66,6 +93,22 @@ fn display_april_tags(background_image: DynamicImage, tags: Vec<Detection>, wind
                 thick_line_to_polygon(corner.into(), next_corner.into(), 3, CapStyle::Square);
             draw_polygon_mut(&mut image, &line, RED);
         }
+
+        // draw tag fidiucial id
+        let center = tag.center().map(|x| x as i32);
+        let text = format!("{}", tag.id());
+
+        let font = Font::try_from_bytes(include_bytes!("../Roboto-Regular.ttf")).unwrap();
+
+        imageproc::drawing::draw_text_mut(
+            &mut image,
+            RED,
+            center[0],
+            center[1],
+            Scale::uniform(100.0),
+            &font,
+            &text,
+        );
     }
 
     let image = DynamicImage::from(image);

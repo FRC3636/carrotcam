@@ -14,6 +14,7 @@ arboard = "3.2.1"
 clap = { version = "4.4.7", features = ["derive"] }
 image = "0.24.7"
 imageproc = { version = "0.23.0" }
+rusttype = "0.9.3"
 show-image = { version = "0.13.1", features = ["image"] }
 [dependencies.nokhwa]
 version = "0.10.4"
