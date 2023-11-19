@@ -1,5 +1,7 @@
+use std::time::SystemTime;
+
 use anyhow::Result;
-use apriltag::{Detection, Detector, Family, Image, TagParams};
+use apriltag::{Detection, Detector, Family, Image};
 use apriltag_image::prelude::*;
 use image::{DynamicImage, Rgb};
 use imageproc::drawing::draw_polygon_mut;
@@ -24,21 +26,24 @@ fn main() -> Result<()> {
         .add_family_bits(Family::tag_16h5(), 1)
         .build()?;
     let image = Image::from_image_buffer(&decoded);
-    let tag_params = TagParams {
-        cx: 1.0,
-        cy: 1.0,
-        fx: 1.0,
-        fy: 1.0,
-        tagsize: 0.04,
-    };
+    // let tag_params = TagParams {
+    //     cx: 1.0,
+    //     cy: 1.0,
+    //     fx: 1.0,
+    //     fy: 1.0,
+    //     tagsize: 0.04,
+    // };
+    let now = SystemTime::now();
     let tags = detector.detect(&image);
     // println!("{tags:#?}");
-    let tag_poses = tags
-        .iter()
-        .filter_map(|det| det.estimate_tag_pose(&tag_params));
-    for pose in tag_poses {
-        println!("{pose:#?}");
-    }
+    // let tag_poses = tags
+    //     .iter()
+    //     .filter_map(|det| det.estimate_tag_pose(&tag_params));
+    // for pose in tag_poses {
+    //     println!("{pose:#?}");
+    // }
+    let elapsed = now.elapsed();
+    println!("{:#?}", elapsed);
     display_april_tags(image::DynamicImage::ImageLuma8(decoded), tags)?;
     Ok(())
 }
