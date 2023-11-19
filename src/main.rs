@@ -3,19 +3,27 @@ use apriltag::{Detection, Detector, Family, Image, TagParams};
 use apriltag_image::prelude::*;
 use image::{DynamicImage, Rgb};
 use imageproc::drawing::draw_polygon_mut;
+use nokhwa::utils::CameraIndex;
 use show_image::{create_window, AsImageView};
 
 use crate::img_utils::{copy_image, thick_line_to_polygon, CapStyle};
+use nokhwa::pixel_format::LumaFormat;
+use nokhwa::Camera;
+use nokhwa::utils::{RequestedFormat, RequestedFormatType};
 
 pub mod img_utils;
 
 #[show_image::main]
 fn main() -> Result<()> {
-    let input_png = image::open("./apriltag.png")?;
+    let index = CameraIndex::Index(0); 
+    let requested = RequestedFormat::new::<LumaFormat>(RequestedFormatType::AbsoluteHighestFrameRate);
+    let mut camera = Camera::new(index, requested).unwrap();
+    let frame = camera.frame().unwrap();
+    let decoded = frame.decode_image::<LumaFormat>().unwrap();
     let mut detector = Detector::builder()
-        .add_family_bits(Family::tag_36h11(), 1)
+        .add_family_bits(Family::tag_16h5(), 1)
         .build()?;
-    let image = Image::from_image_buffer(&input_png.to_luma8());
+    let image = Image::from_image_buffer(&decoded);
     let tag_params = TagParams {
         cx: 1.0,
         cy: 1.0,
@@ -31,7 +39,7 @@ fn main() -> Result<()> {
     for pose in tag_poses {
         println!("{pose:#?}");
     }
-    display_april_tags(input_png, tags)?;
+    display_april_tags(image::DynamicImage::ImageLuma8(decoded), tags)?;
     Ok(())
 }
 
